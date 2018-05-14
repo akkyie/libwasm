@@ -1,0 +1,19 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: alpine:latest
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: apk add --update --no-progress build-base cmake
+      - run:
+          name: Run CMake
+          command: cmake .
+      - run:
+          name: Build
+          command: make
+      - run:
+          name: Test
+          command: make test
