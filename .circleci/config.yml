@@ -7,13 +7,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: apk add --update --no-progress build-base cmake
-      - run:
-          name: Run CMake
-          command: cmake .
-      - run:
-          name: Build
-          command: make
+          command: apk add --update --no-progress build-base
       - run:
           name: Test
           command: make test

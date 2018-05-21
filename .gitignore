@@ -1,11 +1,2 @@
-*.out
-*.a
-*.cmake
-*.profraw
-*.dSYM
 .vscode
-CMakeCache.txt
-CMakeFiles
-CMakeScripts
-Makefile
-Testing
+build/
