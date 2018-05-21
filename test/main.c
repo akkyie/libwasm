@@ -265,9 +265,12 @@ void test_parser_global_type() {
   }
 }
 
-void test_parser_type_section() {
+void test_parser_module() {
   {
-    uint8_t input[] = {0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00};
+    uint8_t input[] = {
+        0x00, 0x61, 0x73, 0x6D,  // magic number
+        0x01, 0x00, 0x00, 0x00,  // wasm version
+    };
     wasm_parser *parser = &(wasm_parser){input, sizeof input};
 
     wasm_module *module;
@@ -275,6 +278,42 @@ void test_parser_type_section() {
     wasm_parser_error error = wasm_parse_module(parser, 0, &module, &end);
     assert(error == WASM_PARSER_NO_ERROR);
     assert(module->typec == 0);
+    assert(module->functionc == 0);
+    assert(module->tablec == 0);
+    assert(module->memoryc == 0);
+    assert(module->globalc == 0);
+    assert(module->exportc == 0);
+  }
+
+  {
+    uint8_t input[] = {
+        0x00, 0x61, 0x73, 0x6D,        // magic number
+        0x01, 0x00, 0x00, 0x00,        // wasm version
+        0x01,                          // section ID
+        0x0B,                          // size
+        0x02,                          // vector length
+        0x60, 0x01, 0x7F, 0x01, 0x7E,  // function type
+        0x60, 0x01, 0x7D, 0x01, 0x7C,  // function type
+    };
+    wasm_parser *parser = &(wasm_parser){input, sizeof input};
+
+    wasm_module *module;
+    size_t end = 0;
+    wasm_parser_error error = wasm_parse_module(parser, 0, &module, &end);
+    assert(error == WASM_PARSER_NO_ERROR);
+
+    assert(module->typec == 2);
+
+    assert(module->typev[0].paramc == 1);
+    assert(module->typev[0].paramv[0] == WASM_VALUE_TYPE_I32);
+    assert(module->typev[0].resultc == 1);
+    assert(module->typev[0].resultv[0] == WASM_VALUE_TYPE_I64);
+
+    assert(module->typev[1].paramc == 1);
+    assert(module->typev[1].paramv[0] == WASM_VALUE_TYPE_F32);
+    assert(module->typev[1].resultc == 1);
+    assert(module->typev[1].resultv[0] == WASM_VALUE_TYPE_F64);
+
     assert(module->functionc == 0);
     assert(module->tablec == 0);
     assert(module->memoryc == 0);
@@ -292,5 +331,5 @@ int main() {
   test_parser_function_type();
   test_parser_limit();
   test_parser_global_type();
-  test_parser_type_section();
+  test_parser_module();
 }

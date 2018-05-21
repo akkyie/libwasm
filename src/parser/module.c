@@ -59,7 +59,7 @@ wasm_parser_error wasm_parse_module(wasm_parser const parser[static 1],
 
   for (wasm_section id = 0; id <= WASM_SECTION_ID_MAX; /* nop */) {
     if (parser->input[*end] == 0) {
-      // parse custom section
+      abort();  // parse custom section; unimplemented
       continue;
     } else if (parser->input[*end] > id) {
       id++;
@@ -89,7 +89,7 @@ wasm_parser_error wasm_parse_module(wasm_parser const parser[static 1],
         break;
       }
       default:
-        exit(1); // unimplemented
+        abort();  // unimplemented
         break;
     }
 
