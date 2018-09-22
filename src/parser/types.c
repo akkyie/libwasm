@@ -1,8 +1,11 @@
 #include <wasm.h>
 
-wasm_parser_error wasm_parse_value_type(wasm_parser const parser[static 1],
-                                        size_t start, wasm_value_type *result,
-                                        size_t *end) {
+wasm_parser_error_t wasm_parse_value_type(wasm_parser_t const parser[static 1],
+                                          size_t start,
+                                          wasm_value_type_t *result,
+                                          size_t *end) {
+  __wasm_parse_checkpoint(start, __func__);
+
   if (start >= parser->length) return WASM_PARSER_REACHED_END;
 
   switch (parser->input[start]) {
@@ -26,22 +29,25 @@ wasm_parser_error wasm_parse_value_type(wasm_parser const parser[static 1],
   return WASM_PARSER_NO_ERROR;
 }
 
-wasm_parser_error wasm_parse_result_type(wasm_parser const parser[static 1],
-                                         size_t start, wasm_result_type *result,
-                                         size_t *end) {
+wasm_parser_error_t wasm_parse_result_type(wasm_parser_t const parser[static 1],
+                                           size_t start,
+                                           wasm_result_type_t *result,
+                                           size_t *end) {
+  __wasm_parse_checkpoint(start, __func__);
+
   if (start >= parser->length) return WASM_PARSER_REACHED_END;
 
   switch (parser->input[start]) {
     case 0x40:
-      *result = (wasm_result_type){NULL, 0};
+      *result = (wasm_result_type_t){NULL, 0};
       break;
     default: {
-      wasm_value_type type;
-      wasm_parser_error error =
+      wasm_value_type_t type;
+      wasm_parser_error_t error =
           wasm_parse_value_type(parser, start, &type, end);
       if (error != WASM_PARSER_NO_ERROR) return error;
 
-      wasm_result_type r = {&type, 1};
+      wasm_result_type_t r = {&type, 1};
       *result = r;
       break;
     }
@@ -51,23 +57,26 @@ wasm_parser_error wasm_parse_result_type(wasm_parser const parser[static 1],
   return WASM_PARSER_NO_ERROR;
 }
 
-wasm_parser_error wasm_parse_function_type(wasm_parser const parser[static 1],
-                                           size_t start,
-                                           wasm_function_type *result,
-                                           size_t *end) {
+wasm_parser_error_t wasm_parse_function_type(
+    wasm_parser_t const parser[static 1], size_t start,
+    wasm_function_type_t *result, size_t *end) {
+  __wasm_parse_checkpoint(start, __func__);
+
   if (start >= parser->length) return WASM_PARSER_REACHED_END;
 
-  if (parser->input[start] != 0x60) return WASM_PARSER_UNEXPECTED;
+  if (parser->input[start] != 0x60) {
+    return WASM_PARSER_UNEXPECTED;
+  }
 
-  wasm_function_type _result = {NULL, 0, NULL, 0};
+  wasm_function_type_t _result = {NULL, 0, NULL, 0};
 
-  wasm_parser_error error =
+  wasm_parser_error_t error =
       wasm_parse_uint(32, parser, start + 1, &(_result.paramc), end);
   if (error != WASM_PARSER_NO_ERROR) return error;
 
   _result.paramv =
-      (wasm_value_type *)calloc(_result.paramc, sizeof(wasm_value_type));
-  if (_result.paramv == NULL) return WASM_PARSER_CALLOC_FAILED;
+      (wasm_value_type_t *)calloc(_result.paramc, sizeof(wasm_value_type_t));
+  if (_result.paramv == NULL) return WASM_PARSER_ALLOC_FAILED;
 
   size_t parameter_offset = *end;
   for (size_t i = 0; i < _result.paramc; i++) {
@@ -80,10 +89,10 @@ wasm_parser_error wasm_parse_function_type(wasm_parser const parser[static 1],
   if (error != WASM_PARSER_NO_ERROR) return error;
 
   _result.resultv =
-      (wasm_value_type *)calloc(_result.resultc, sizeof(wasm_value_type));
+      (wasm_value_type_t *)calloc(_result.resultc, sizeof(wasm_value_type_t));
 
   if (_result.resultv == NULL) {
-    return WASM_PARSER_CALLOC_FAILED;
+    return WASM_PARSER_ALLOC_FAILED;
   }
 
   size_t result_offset = *end;
@@ -98,32 +107,34 @@ wasm_parser_error wasm_parse_function_type(wasm_parser const parser[static 1],
   return WASM_PARSER_NO_ERROR;
 }
 
-wasm_parser_error wasm_parse_limit(wasm_parser const parser[static 1],
-                                   size_t start, wasm_limit *result,
-                                   size_t *end) {
+wasm_parser_error_t wasm_parse_limit(wasm_parser_t const parser[static 1],
+                                     size_t start, wasm_limit_t *result,
+                                     size_t *end) {
+  __wasm_parse_checkpoint(start, __func__);
+
   if (start >= parser->length) return WASM_PARSER_REACHED_END;
 
   switch (parser->input[start]) {
     case 0x00: {
       uint32_t min;
-      wasm_parser_error error =
+      wasm_parser_error_t error =
           wasm_parse_uint(32, parser, start + 1, &min, end);
       if (error != WASM_PARSER_NO_ERROR) return error;
 
-      *result = (wasm_limit){.has_max = false, min, 0};
+      *result = (wasm_limit_t){.has_max = false, min, 0};
       return WASM_PARSER_NO_ERROR;
     }
     case 0x01: {
       uint32_t min, max;
 
-      wasm_parser_error error =
+      wasm_parser_error_t error =
           wasm_parse_uint(32, parser, start + 1, &min, end);
       if (error != WASM_PARSER_NO_ERROR) return error;
 
       error = wasm_parse_uint(32, parser, *end, &max, end);
       if (error != WASM_PARSER_NO_ERROR) return error;
 
-      *result = (wasm_limit){.has_max = true, min, max};
+      *result = (wasm_limit_t){.has_max = true, min, max};
       return WASM_PARSER_NO_ERROR;
     }
     default:
@@ -131,46 +142,57 @@ wasm_parser_error wasm_parse_limit(wasm_parser const parser[static 1],
   }
 }
 
-wasm_parser_error wasm_parse_memory_type(wasm_parser const parser[static 1],
-                                         size_t start, wasm_memory_type *result,
-                                         size_t *end) {
+wasm_parser_error_t wasm_parse_memory_type(wasm_parser_t const parser[static 1],
+                                           size_t start,
+                                           wasm_memory_type_t *result,
+                                           size_t *end) {
+  __wasm_parse_checkpoint(start, __func__);
+
   return wasm_parse_limit(parser, start, result, end);
 }
 
-wasm_parser_error wasm_parse_table_type(wasm_parser const parser[static 1],
-                                        size_t start, wasm_table_type *result,
-                                        size_t *end) {
+wasm_parser_error_t wasm_parse_table_type(wasm_parser_t const parser[static 1],
+                                          size_t start,
+                                          wasm_table_type_t *result,
+                                          size_t *end) {
+  __wasm_parse_checkpoint(start, __func__);
+
   if (start >= parser->length) return WASM_PARSER_REACHED_END;
 
-  if (parser->input[start] != 0x70) return WASM_PARSER_UNEXPECTED;
+  if (parser->input[start] != 0x70) {
+    return WASM_PARSER_UNEXPECTED;
+  }
 
-  wasm_limit limit;
-  wasm_parser_error error = wasm_parse_limit(parser, start + 1, &limit, end);
+  wasm_limit_t limit;
+  wasm_parser_error_t error = wasm_parse_limit(parser, start + 1, &limit, end);
   if (error != WASM_PARSER_NO_ERROR) return error;
 
-  *result = (wasm_table_type){limit};
+  *result = (wasm_table_type_t){limit};
 
   return WASM_PARSER_NO_ERROR;
 }
 
-wasm_parser_error wasm_parse_global_type(wasm_parser const parser[static 1],
-                                         size_t start, wasm_global_type *result,
-                                         size_t *end) {
+wasm_parser_error_t wasm_parse_global_type(wasm_parser_t const parser[static 1],
+                                           size_t start,
+                                           wasm_global_type_t *result,
+                                           size_t *end) {
+  __wasm_parse_checkpoint(start, __func__);
+
   if (start >= parser->length) return WASM_PARSER_REACHED_END;
 
-  wasm_value_type value_type;
-  wasm_parser_error error =
+  wasm_value_type_t value_type;
+  wasm_parser_error_t error =
       wasm_parse_value_type(parser, start, &value_type, end);
   if (error != WASM_PARSER_NO_ERROR) return error;
 
   switch (parser->input[*end]) {
     case 0x00: {
-      *result = (wasm_global_type){value_type, WASM_MUTABILITY_CONST};
+      *result = (wasm_global_type_t){value_type, WASM_MUTABILITY_CONST};
       *end += 1;
       return WASM_PARSER_NO_ERROR;
     }
     case 0x01: {
-      *result = (wasm_global_type){value_type, WASM_MUTABILITY_VARIABLE};
+      *result = (wasm_global_type_t){value_type, WASM_MUTABILITY_VARIABLE};
       *end += 1;
       return WASM_PARSER_NO_ERROR;
     }
