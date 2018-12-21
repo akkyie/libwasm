@@ -1,0 +1,12 @@
+{
+  "name": "libwasm",
+  "version": "0.0.1",
+  "src": [
+    "include/wasm.h",
+    "src/parser/instructions.c",
+    "src/parser/module.c",
+    "src/parser/types.c",
+    "src/parser/values.c"
+  ],
+  "repo": "sfc-arch/libwasm"
+}
