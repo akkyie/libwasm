@@ -1,6 +1,6 @@
 # libwasm
 
-[![CircleCI](https://circleci.com/gh/sfc-arch/libwasm.svg?style=svg&circle-token=6c16532051650f251e70b6e0cd931168c43a560d)](https://circleci.com/gh/sfc-arch/libwasm)
+[![CircleCI](https://circleci.com/gh/akkyie/libwasm.svg?style=svg&circle-token=6c16532051650f251e70b6e0cd931168c43a560d)](https://circleci.com/gh/akkyie/libwasm)
 
 ## Build
 

@@ -8,5 +8,5 @@
     "src/parser/types.c",
     "src/parser/values.c"
   ],
-  "repo": "sfc-arch/libwasm"
+  "repo": "akkyie/libwasm"
 }
