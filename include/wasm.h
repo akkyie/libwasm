@@ -19,6 +19,16 @@ typedef enum {
   WASM_VALUE_TYPE_F64,
 } wasm_value_type_t;
 
+typedef struct {
+  wasm_value_type_t type;
+  union {
+    int32_t i32;
+    int64_t i64;
+    float f32;
+    double f64;
+  } value;
+} wasm_value_t;
+
 typedef uint32_t type_index;
 typedef uint32_t function_index;
 typedef uint32_t table_index;
@@ -557,6 +567,90 @@ wasm_parser_error_t wasm_parse_data_section(
 wasm_parser_error_t wasm_parse_module(wasm_parser_t const parser[static 1],
                                       size_t start, wasm_module_t** module,
                                       size_t* end);
+
+/*
+ * Rumtime Structure
+ */
+
+// Addressess
+
+typedef uint32_t wasm_address_t;
+typedef wasm_address_t wasm_function_address_t;
+typedef wasm_address_t wasm_table_address_t;
+typedef wasm_address_t wasm_memory_address_t;
+typedef wasm_address_t wasm_global_address_t;
+
+typedef struct {
+  wasm_function_type_t* typev;
+  uint32_t typec;
+
+  wasm_function_address_t* functionv;
+  uint32_t functionc;
+
+  wasm_table_address_t* tablev;
+  uint32_t tablec;
+
+  wasm_memory_address_t* memoryv;
+  uint32_t memoryc;
+
+  wasm_global_address_t* globalv;
+  uint32_t globalc;
+} wasm_module_instance_t;
+
+typedef struct {
+  wasm_function_type_t* type;
+  wasm_module_instance_t* module;
+  wasm_function_t* code;
+} wasm_function_instance_t;
+
+typedef struct {
+  wasm_function_address_t** functionv;
+  uint32_t functionc;
+} wasm_table_instance_t;
+
+typedef struct {
+  uint8_t* data;
+  uint8_t max;
+  bool has_max;
+} wasm_memory_instance_t;
+
+typedef struct {
+  wasm_value_t* value;
+} wasm_global_instance_t;
+
+typedef struct {
+  wasm_function_instance_t** functionv;
+  uint32_t functionc;
+
+  wasm_table_instance_t** tablev;
+  uint32_t tablec;
+
+  wasm_memory_instance_t** memoryv;
+  uint32_t memoryc;
+
+  wasm_global_instance_t** globalv;
+  uint32_t globalc;
+} wasm_store_t;
+
+wasm_function_address_t wasm_allocate_function(
+    wasm_store_t* store, wasm_function_t* function,
+    wasm_module_instance_t* moduleinst);
+
+wasm_table_address_t wasm_allocate_table(wasm_store_t* store,
+                                         wasm_table_type_t* table);
+
+wasm_memory_address_t wasm_allocate_memory(wasm_store_t* store,
+                                           wasm_memory_type_t* memory);
+
+wasm_global_address_t wasm_allocate_global(wasm_store_t* store,
+                                           wasm_global_type_t* global);
+
+wasm_module_instance_t* wasm_allocate_module(wasm_store_t* store,
+                                             wasm_module_t* module);
+
+/*
+ * Utilities
+ */
 
 static inline void __wasm_parse_checkpoint(size_t start, const char* func) {
 #ifdef DEBUG
