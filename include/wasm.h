@@ -648,6 +648,10 @@ wasm_global_address_t wasm_allocate_global(wasm_store_t* store,
 wasm_module_instance_t* wasm_allocate_module(wasm_store_t* store,
                                              wasm_module_t* module);
 
+wasm_module_instance_t* wasm_instantiate_module(wasm_stack_t* stack,
+                                                wasm_store_t* store,
+                                                wasm_module_t* module);
+
 /*
  * Utilities
  */
