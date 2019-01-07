@@ -1,9 +1,9 @@
 #pragma once
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 /*
@@ -580,6 +580,17 @@ typedef wasm_address_t wasm_table_address_t;
 typedef wasm_address_t wasm_memory_address_t;
 typedef wasm_address_t wasm_global_address_t;
 
+// Values
+
+wasm_value_t* wasm_value_init_i32(int32_t v);
+wasm_value_t* wasm_value_init_i64(int64_t v);
+wasm_value_t* wasm_value_init_f32(float v);
+wasm_value_t* wasm_value_init_f64(double v);
+void wasm_value_free(wasm_value_t* value);
+wasm_value_t* wasm_value_copy(wasm_value_t* v);
+
+// Instances
+
 typedef struct {
   wasm_function_type_t* typev;
   uint32_t typec;
@@ -618,6 +629,8 @@ typedef struct {
   wasm_value_t* value;
 } wasm_global_instance_t;
 
+// Store
+
 typedef struct {
   wasm_function_instance_t** functionv;
   uint32_t functionc;
@@ -631,6 +644,61 @@ typedef struct {
   wasm_global_instance_t** globalv;
   uint32_t globalc;
 } wasm_store_t;
+
+wasm_store_t* wasm_store_init();
+
+// Stack
+
+typedef enum {
+  WASM_STACK_ENTRY_VALUE,
+  WASM_STACK_ENTRY_LABEL,
+  WASM_STACK_ENTRY_FRAME
+} wasm_stack_entry_kind_t;
+
+typedef struct {
+  uint32_t arity;
+  size_t instructionc;
+  wasm_instruction_t* instructionv;
+} wasm_label_t;
+
+typedef struct {
+  uint32_t arity;
+  size_t localc;
+  wasm_value_t* localv;
+  wasm_module_instance_t* moduleinst;
+} wasm_frame_t;
+
+typedef struct {
+  wasm_stack_entry_kind_t kind;
+
+  union {
+    wasm_value_t* value;
+    wasm_label_t* label;
+    wasm_frame_t* frame;
+  } data;
+
+  void* /* wasm_stack_entry_t* */ next;
+} wasm_stack_entry_t;
+
+typedef struct {
+  wasm_stack_entry_t* top;
+} wasm_stack_t;
+
+wasm_stack_t* wasm_stack_init();
+
+void wasm_stack_push_value(wasm_stack_t* stack, wasm_value_t* value);
+wasm_value_t* wasm_stack_pop_value(wasm_stack_t* stack);
+
+void wasm_stack_push_frame(wasm_stack_t* stack, wasm_frame_t* frame);
+wasm_frame_t* wasm_stack_pop_frame(wasm_stack_t* stack);
+
+void wasm_stack_push_label(wasm_stack_t* stack, wasm_label_t* label);
+wasm_label_t* wasm_stack_pop_label(wasm_stack_t* stack);
+
+wasm_frame_t* wasm_stack_get_current_frame(wasm_stack_t* stack);
+wasm_label_t* wasm_stack_get_nth_label(wasm_stack_t* stack, uint32_t n);
+
+// Allocation
 
 wasm_function_address_t wasm_allocate_function(
     wasm_store_t* store, wasm_function_t* function,
@@ -652,6 +720,26 @@ wasm_module_instance_t* wasm_instantiate_module(wasm_stack_t* stack,
                                                 wasm_store_t* store,
                                                 wasm_module_t* module);
 
+// Execution
+
+typedef enum {
+  WAMS_EXECUTION_RESULT_NEXT = 0,
+  WAMS_EXECUTION_RESULT_BR,
+  WAMS_EXECUTION_RESULT_UNKNOWN = -1,
+} wasm_execution_result_t;
+
+void wasm_invoke_function(wasm_store_t* store, wasm_stack_t* stack,
+                          wasm_module_instance_t* moduleinst,
+                          wasm_function_instance_t* funcinst);
+
+void wasm_invoke(wasm_store_t* store, wasm_stack_t* stack,
+                 wasm_module_instance_t* moduleinst,
+                 wasm_function_address_t funcaddr, wasm_value_t* valuev,
+                 uint32_t valuec, wasm_value_t** resultv, uint32_t* resultc);
+
+wasm_execution_result_t wasm_execute(wasm_store_t* store, wasm_stack_t* stack,
+                                     wasm_instruction_t* instruction);
+
 /*
  * Utilities
  */
@@ -663,3 +751,5 @@ static inline void __wasm_parse_checkpoint(size_t start, const char* func) {
 }
 
 void wasm_print_module(wasm_module_t* module);
+void wasm_print_value(wasm_value_t* value);
+void wasm_print_stack(wasm_stack_t* stack);

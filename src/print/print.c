@@ -1,5 +1,7 @@
 #include <wasm.h>
 
+#include <stdio.h>
+
 #define INDENT(n) \
   for (uint8_t i = 0; i < n; i++) printf(" ");
 
@@ -629,4 +631,50 @@ void wasm_print_module(wasm_module_t* module) {
   printf("%u data\n", module->datac);
   printf("%u imports\n", module->importc);
   printf("%u exports\n", module->exportc);
+}
+
+void wasm_print_value(wasm_value_t* value) {
+  printf(" value: ");
+
+  switch (value->type) {
+    case WASM_VALUE_TYPE_I32:
+      printf("(i32) %d\n", value->value.i32);
+      break;
+    case WASM_VALUE_TYPE_I64:
+      printf("(i64) %lld\n", value->value.i64);
+      break;
+    case WASM_VALUE_TYPE_F32:
+      printf("(f32) %f\n", value->value.f32);
+      break;
+    case WASM_VALUE_TYPE_F64:
+      printf("(f64) %lf\n", value->value.f64);
+      break;
+    default:
+      break;
+  }
+}
+
+void wasm_print_stack(wasm_stack_t* stack) {
+  for (wasm_stack_entry_t* entry = stack->top; entry != NULL;
+       entry = entry->next) {
+    switch (entry->kind) {
+      case WASM_STACK_ENTRY_VALUE: {
+        wasm_print_value(entry->data.value);
+      } break;
+      case WASM_STACK_ENTRY_FRAME: {
+        printf(" frame [%u]\n", entry->data.frame->arity);
+        for (size_t i = 0; i < entry->data.frame->localc; i++) {
+          printf(" ");
+          wasm_print_value(&entry->data.frame->localv[i]);
+        }
+      } break;
+
+      case WASM_STACK_ENTRY_LABEL: {
+        printf(" label [%u]\n", entry->data.label->arity);
+        printf("   %lu instructions\n", entry->data.label->instructionc);
+      } break;
+      default:
+        break;
+    }
+  }
 }
