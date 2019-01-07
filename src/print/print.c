@@ -671,7 +671,7 @@ void wasm_print_stack(wasm_stack_t* stack) {
 
       case WASM_STACK_ENTRY_LABEL: {
         printf(" label [%u]\n", entry->data.label->arity);
-        printf("   %lu instructions\n", entry->data.label->instructionc);
+        printf("   %zu instructions\n", entry->data.label->instructionc);
       } break;
       default:
         break;
