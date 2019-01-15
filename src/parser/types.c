@@ -82,7 +82,10 @@ wasm_parser_error_t wasm_parse_function_type(
   for (size_t i = 0; i < _result.paramc; i++) {
     error = wasm_parse_value_type(parser, parameter_offset,
                                   &(_result.paramv[i]), end);
-    if (error != WASM_PARSER_NO_ERROR) return error;
+    if (error != WASM_PARSER_NO_ERROR) {
+      free(_result.paramv);
+      return error;
+    }
   }
 
   error = wasm_parse_uint(32, parser, *end, &(_result.resultc), end);
@@ -99,7 +102,10 @@ wasm_parser_error_t wasm_parse_function_type(
   for (size_t i = 0; i < _result.resultc; i++) {
     error = wasm_parse_value_type(parser, result_offset, &(_result.resultv[i]),
                                   end);
-    if (error != WASM_PARSER_NO_ERROR) return error;
+    if (error != WASM_PARSER_NO_ERROR) {
+      free(_result.resultv);
+      return error;
+    }
   }
 
   *result = _result;

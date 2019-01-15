@@ -49,6 +49,8 @@ wasm_parser_error_t wasm_parse_type_section(
 
   *typec = count;
   *typev = calloc(count, sizeof(wasm_function_type_t));
+  if (*typev == NULL) return WASM_PARSER_ALLOC_FAILED;
+
   for (uint32_t i = 0; i < count; i++) {
     wasm_function_type_t result;
     wasm_parse_function_type(parser, *end, &result, end);
@@ -69,6 +71,8 @@ wasm_parser_error_t wasm_parse_import_section(
 
   *importc = count;
   *importv = calloc(count, sizeof(wasm_import_t));
+  if (*importv == NULL) return WASM_PARSER_ALLOC_FAILED;
+
   for (uint32_t i = 0; i < count; i++) {
     wasm_utf8_t *mod;
     wasm_parse_name(parser, *end, &mod, end);
@@ -121,6 +125,7 @@ wasm_parser_error_t wasm_parse_function_section(
 
   *indexc = count;
   *indexv = (uint32_t *)calloc(count, sizeof(uint32_t));
+  if (*indexv == NULL) return WASM_PARSER_ALLOC_FAILED;
 
   for (uint32_t i = 0; i < count; i++) {
     wasm_parse_uint(32, parser, *end, &((*indexv)[i]), end);
@@ -139,6 +144,7 @@ wasm_parser_error_t wasm_parse_table_section(
 
   *tablec = count;
   *tablev = (wasm_table_type_t *)calloc(count, sizeof(wasm_table_type_t));
+  if (*tablev == NULL) return WASM_PARSER_ALLOC_FAILED;
 
   for (uint32_t i = 0; i < count; i++) {
     wasm_parse_table_type(parser, *end, &((*tablev)[i]), end);
@@ -157,6 +163,7 @@ wasm_parser_error_t wasm_parse_memory_section(
 
   *memoryc = count;
   *memoryv = (wasm_memory_type_t *)calloc(count, sizeof(wasm_memory_type_t));
+  if (*memoryv == NULL) return WASM_PARSER_ALLOC_FAILED;
 
   for (uint32_t i = 0; i < count; i++) {
     wasm_parse_memory_type(parser, *end, &((*memoryv)[i]), end);
@@ -175,6 +182,7 @@ wasm_parser_error_t wasm_parse_global_section(
 
   *globalc = count;
   *globalv = (wasm_global_type_t *)calloc(count, sizeof(wasm_global_type_t));
+  if (*globalv == NULL) return WASM_PARSER_ALLOC_FAILED;
 
   for (uint32_t i = 0; i < count; i++) {
     wasm_parse_global_type(parser, *end, &((*globalv)[i]), end);
@@ -196,6 +204,7 @@ wasm_parser_error_t wasm_parse_export_section(
 
   *exportc = count;
   *exportv = (wasm_export_t *)calloc(count, sizeof(wasm_export_t));
+  if (*exportv == NULL) return WASM_PARSER_ALLOC_FAILED;
 
   for (uint32_t i = 0; i < count; i++) {
     wasm_utf8_t *name;
@@ -229,6 +238,7 @@ wasm_parser_error_t wasm_parse_element_section(
   if (error != WASM_PARSER_NO_ERROR) return error;
   *elementc = count;
   *elementv = (wasm_element_t *)calloc(count, sizeof(wasm_element_t));
+  if (*elementv == NULL) return WASM_PARSER_ALLOC_FAILED;
 
   for (uint32_t i = 0; i < count; i++) {
     wasm_parse_uint(32, parser, *end, &(*elementv)[i].table, end);
@@ -244,6 +254,8 @@ wasm_parser_error_t wasm_parse_element_section(
     (*elementv)[i].initc = initc;
 
     (*elementv)[i].initv = calloc(initc, sizeof(uint32_t));
+    if ((*elementv)[i].initv == NULL) return WASM_PARSER_ALLOC_FAILED;
+
     for (uint32_t j = 0; j < initc; j++) {
       error = wasm_parse_uint(32, parser, *end, (*elementv)[i].initv + j, end);
       if (error != WASM_PARSER_NO_ERROR) return error;
@@ -265,6 +277,7 @@ wasm_parser_error_t wasm_parse_code_section(
   if (error != WASM_PARSER_NO_ERROR) return error;
   *codec = count;
   *codev = calloc(count, sizeof(wasm_function_t));
+  if (*codev == NULL) return WASM_PARSER_ALLOC_FAILED;
 
   for (size_t i = 0; i < count; i++) {
     uint32_t size;
@@ -328,6 +341,8 @@ wasm_parser_error_t wasm_parse_data_section(
 
   *datac = count;
   *datav = calloc(count, sizeof(wasm_data_t));
+  if (*datav == NULL) return WASM_PARSER_ALLOC_FAILED;
+
   for (size_t i = 0; i < count; i++) {
     uint32_t index;
     error = wasm_parse_uint(32, parser, *end, &index, end);
@@ -345,6 +360,8 @@ wasm_parser_error_t wasm_parse_data_section(
     (*datav)[i].offset = expression;
     (*datav)[i].initc = length;
     (*datav)[i].initv = calloc(length, sizeof(uint8_t));
+    if ((*datav)[i].initv == NULL) return WASM_PARSER_ALLOC_FAILED;
+
     error = wasm_parse_bytes(length, parser, *end, (*datav)[i].initv, end);
     if (error != WASM_PARSER_NO_ERROR) return error;
   }
@@ -368,6 +385,7 @@ wasm_parser_error_t wasm_parse_module(wasm_parser_t const parser[static 1],
   if (error != WASM_PARSER_NO_ERROR) return error;
 
   *module = (wasm_module_t *)calloc(1, sizeof(wasm_module_t));
+  if (*module == NULL) return WASM_PARSER_ALLOC_FAILED;
 
   uint32_t *funcidxv = NULL;
   uint32_t funcidxc = 0;

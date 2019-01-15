@@ -1,8 +1,6 @@
-add_subdirectory(parser)
-add_subdirectory(execution)
-
 foreach(name IN ITEMS
-  fib
+  invocation
+  stack
 )
   add_executable(${name} ${name}.c)
   target_link_libraries(${name} wasm)
