@@ -26,9 +26,9 @@ int main(int argc, char const *argv[]) {
   wasm_parser_error_t error = wasm_parse_module(parser, 0, &module, &end);
   assert(error == WASM_PARSER_NO_ERROR);
 
-  // wasm_print_module(module);
+  //  wasm_print_module(module);
 
-  // Execution
+  //  // Execution
 
   wasm_store_t *store = wasm_store_init();
   wasm_stack_t *stack = wasm_stack_init();
@@ -36,7 +36,7 @@ int main(int argc, char const *argv[]) {
   wasm_module_instance_t *moduleinst = wasm_allocate_module(store, module);
   printf("Module allocated\n");
 
-  for (uint32_t i = 0; i < 30; i++) {
+  for (uint32_t i = 0; i < 20; i++) {
     printf("\n\n");
     wasm_value_t *value = wasm_value_init_i32(i);
     wasm_value_t *resultv = NULL;

@@ -15,7 +15,10 @@ wasm_function_address_t wasm_allocate_function(
   funcinst->code = function;
 
   wasm_function_instance_t** functionv = realloc(store->functionv, addr);
-  if (functionv == NULL) return -1;
+  if (functionv == NULL) {
+    free(funcinst);
+    return -1;
+  }
 
   functionv[addr] = funcinst;
   store->functionv = functionv;
@@ -31,10 +34,13 @@ wasm_table_address_t wasm_allocate_table(wasm_store_t* store,
 
   uint32_t min = tabletype->limit.min;
   tableinst->functionc = min;
-  tableinst->functionv = calloc(min, sizeof(wasm_function_address_t));
+  tableinst->functionv = calloc(min, sizeof(wasm_function_address_t*));
 
   wasm_table_instance_t** tablev = realloc(store->tablev, addr);
-  if (tablev == NULL) return -1;
+  if (tablev == NULL) {
+    free(tableinst);
+    return -1;
+  }
 
   tablev[addr] = tableinst;
   store->tablev = tablev;
@@ -55,7 +61,10 @@ wasm_memory_address_t wasm_allocate_memory(wasm_store_t* store,
   memoryinst->max = memorytype->max;
 
   wasm_memory_instance_t** memoryv = realloc(store->memoryv, addr);
-  if (memoryv == NULL) return -1;
+  if (memoryv == NULL) {
+    free(memoryinst);
+    return -1;
+  }
 
   memoryv[addr] = memoryinst;
   store->memoryv = memoryv;
@@ -72,7 +81,10 @@ wasm_global_address_t wasm_allocate_global(wasm_store_t* store,
       calloc(1, sizeof(wasm_global_instance_t));
 
   wasm_global_instance_t** globalv = realloc(store->globalv, addr);
-  if (globalv == NULL) return -1;
+  if (globalv == NULL) {
+    free(globalinst);
+    return -1;
+  }
 
   globalv[addr] = globalinst;
   store->globalv = globalv;

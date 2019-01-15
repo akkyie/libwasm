@@ -685,6 +685,7 @@ typedef struct {
 } wasm_stack_t;
 
 wasm_stack_t* wasm_stack_init();
+void wasm_stack_entry_free(wasm_stack_entry_t* entry);
 
 void wasm_stack_push_value(wasm_stack_t* stack, wasm_value_t* value);
 wasm_value_t* wasm_stack_pop_value(wasm_stack_t* stack);
@@ -697,6 +698,9 @@ wasm_label_t* wasm_stack_pop_label(wasm_stack_t* stack);
 
 wasm_frame_t* wasm_stack_get_current_frame(wasm_stack_t* stack);
 wasm_label_t* wasm_stack_get_nth_label(wasm_stack_t* stack, uint32_t n);
+
+void wasm_frame_free(wasm_frame_t* frame);
+void wasm_label_free(wasm_label_t* label);
 
 // Allocation
 

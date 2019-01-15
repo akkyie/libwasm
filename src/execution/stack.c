@@ -67,9 +67,9 @@ wasm_label_t* wasm_stack_pop_label(wasm_stack_t* stack) {
 wasm_frame_t* wasm_stack_get_current_frame(wasm_stack_t* stack) {
   wasm_stack_entry_t* entry = stack->top;
   for (; entry != NULL; entry = entry->next) {
-    if (entry->kind == WASM_STACK_ENTRY_FRAME) break;
+    if (entry->kind == WASM_STACK_ENTRY_FRAME) return entry->data.frame;
   }
-  return entry->data.frame;
+  return NULL;
 }
 
 wasm_label_t* wasm_stack_get_nth_label(wasm_stack_t* stack, uint32_t n) {
@@ -77,8 +77,16 @@ wasm_label_t* wasm_stack_get_nth_label(wasm_stack_t* stack, uint32_t n) {
 
   int i = 0;
   for (; entry != NULL; entry = entry->next) {
-    if (entry->kind == WASM_STACK_ENTRY_LABEL && ++i > n) break;
+    if (entry->kind == WASM_STACK_ENTRY_LABEL && ++i > n)
+      return entry->data.label;
   }
 
-  return entry->data.label;
+  return NULL;
 }
+
+void wasm_frame_free(wasm_frame_t* frame) {
+  free(frame->localv);
+  free(frame);
+}
+
+void wasm_label_free(wasm_label_t* label) { free(label); }

@@ -25,6 +25,7 @@ wasm_execution_result_t wasm_execute(wasm_store_t* store, wasm_stack_t* stack,
       wasm_expression_t* expression = instruction->argument.block->expression;
       wasm_enter_block(store, stack, label, expression->instructionv,
                        expression->instructionc);
+      wasm_label_free(label);
       return WAMS_EXECUTION_RESULT_NEXT;
     }
 
@@ -35,6 +36,8 @@ wasm_execution_result_t wasm_execute(wasm_store_t* store, wasm_stack_t* stack,
       label->instructionc = 1;
       wasm_enter_block(store, stack, label, expression->instructionv,
                        expression->instructionc);
+
+      wasm_label_free(label);
       return WAMS_EXECUTION_RESULT_NEXT;
     }
 
@@ -52,13 +55,17 @@ wasm_execution_result_t wasm_execute(wasm_store_t* store, wasm_stack_t* stack,
 
       for (uint32_t i = 0; i <= label->arity; i++) {
         while (stack->top->kind == WASM_STACK_ENTRY_VALUE)
-          wasm_stack_pop_value(stack);
+          wasm_value_free(wasm_stack_pop_value(stack));
 
-        wasm_stack_pop_label(stack);
+        wasm_label_t* _label = wasm_stack_pop_label(stack);
+        // don't free current label
+        if (label != _label) wasm_label_free(_label);
       }
 
       for (uint32_t i = 0; i < label->arity; i++)
         wasm_stack_push_value(stack, valuev[i]);
+
+      free(valuev);
 
       return WAMS_EXECUTION_RESULT_BR;
     }
@@ -66,12 +73,15 @@ wasm_execution_result_t wasm_execute(wasm_store_t* store, wasm_stack_t* stack,
     case WASM_OPCODE_BRIF: {
       wasm_value_t* value = wasm_stack_pop_value(stack);
       assert(value->type == WASM_VALUE_TYPE_I32);
+
       if (value->value.i32 == 0) {
-        // do nothing
+        wasm_value_free(value);
         return WAMS_EXECUTION_RESULT_NEXT;
       }
 
       assert(value->value.i32 == 1);
+      wasm_value_free(value);
+
       wasm_instruction_t ins = (wasm_instruction_t){
           .opcode = WASM_OPCODE_BR, .argument = instruction->argument};
       return wasm_execute(store, stack, &ins);
@@ -260,7 +270,6 @@ void wasm_enter_block(wasm_store_t* store, wasm_stack_t* stack,
 
       assert(stack->top->kind == WASM_STACK_ENTRY_LABEL);
       wasm_stack_pop_label(stack);
-      // free(label);
 
       if (value != NULL) {
         wasm_stack_push_value(stack, value);

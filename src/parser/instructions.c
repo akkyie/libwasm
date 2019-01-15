@@ -34,15 +34,24 @@ wasm_parser_error_t wasm_parse_instruction(wasm_parser_t const parser[static 1],
       if (error != WASM_PARSER_NO_ERROR) return error;
 
       wasm_expression_t *expression =
-          (wasm_expression_t *)calloc(1, sizeof(wasm_expression_t *));
+          (wasm_expression_t *)calloc(1, sizeof(wasm_expression_t));
+      if (expression == NULL) return WASM_PARSER_ALLOC_FAILED;
 
       error = wasm_parse_expression_body(parser, *end, expression, end);
-      if (error != WASM_PARSER_NO_ERROR) return error;
+      if (error != WASM_PARSER_NO_ERROR) {
+        free(expression);
+        return error;
+      }
 
       *end += 1;  // consume end
 
       wasm_block_argument_t *argument =
           (wasm_block_argument_t *)calloc(1, sizeof(wasm_block_argument_t));
+      if (argument == NULL) {
+        free(expression);
+        return WASM_PARSER_ALLOC_FAILED;
+      }
+
       argument->type = result;
       argument->expression = expression;
 
@@ -211,7 +220,6 @@ wasm_parser_error_t wasm_parse_next_instruction(
   wasm_instruction_t *tmp =
       realloc(*instructionv, *instructionc * sizeof(wasm_instruction_t));
   if (tmp == NULL) {
-    free(*instructionv);
     return WASM_PARSER_ALLOC_FAILED;
   }
   *instructionv = tmp;
@@ -235,7 +243,10 @@ wasm_parser_error_t wasm_parse_expression_body(
        c = parser->input[*end]) {
     wasm_parser_error_t error = wasm_parse_next_instruction(
         parser, *end, &instructionv, &instructionc, end);
-    if (error != WASM_PARSER_NO_ERROR) return error;
+    if (error != WASM_PARSER_NO_ERROR) {
+      free(instructionv);
+      return error;
+    }
   }
 
   expression->instructionc = instructionc;

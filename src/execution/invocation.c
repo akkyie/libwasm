@@ -65,6 +65,7 @@ void wasm_invoke_function(wasm_store_t *store, wasm_stack_t *stack,
       (wasm_instruction_t){.opcode = WASM_OPCODE_BLOCK, .argument.block = &arg};
 
   int result = wasm_execute(store, stack, &block);
+
   // printf("=== returning from function\n");
   // printf("result: %d\n", result);
   // printf("stack: \n");
@@ -78,8 +79,13 @@ void wasm_invoke_function(wasm_store_t *store, wasm_stack_t *stack,
   for (uint32_t i = 0; i < frame->arity; i++)
     valuev[i] = wasm_stack_pop_value(stack);
 
-  wasm_stack_pop_frame(stack);
+  // wasm_stack_pop_frame(stack);
+  frame = wasm_stack_pop_frame(stack);
 
   for (uint32_t i = 0; i < frame->arity; i++)
     wasm_stack_push_value(stack, valuev[i]);
+
+  wasm_frame_free(frame);
+
+  free(valuev);
 }
